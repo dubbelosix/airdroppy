@@ -23,7 +23,7 @@ def get_addresses_edition_numbers(address_file):
     with open(address_file) as f:
         lines = filter(lambda x: "," in x, f.read().split("\n"))
     edition_number_addresses = [l.split(",") for l in lines]
-    edition_number_addresses = [(PublicKey(l[0]),l[1]) for l in edition_number_addresses]
+    edition_number_addresses = [(PublicKey(l[0]),int(l[1])) for l in edition_number_addresses]
     return edition_number_addresses
 
 def get_keypair(keypath):
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 
         txn.add(mint_new_edition_from_master_edition)
         signers = [source_account, new_mint_token]
-        print(execute(USENET, txn, signers))
+        print(execute(use_network, txn, signers))
 
 
 
