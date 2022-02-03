@@ -6,15 +6,18 @@ from solana.publickey import PublicKey
 from solana.keypair import Keypair
 from solana.rpc.api import Client
 from solana.rpc.types import TxOpts
+from solana.transaction import Transaction
+
 
 from spl.token.core import _TokenCore
 from spl.token.client import Token
 from spl.token.instructions import get_associated_token_address
 
-from instruction_builder import mint_new_edition_from_master_edition_instruction
+from instruction_builder import mint_new_edition_from_master_edition_instruction, create_metadata_instruction
+from metadata import get_create_metadata_instruction
 
 TESTNET = "https://api.testnet.solana.com"
-MAINNET = "https://api.mainnet-beta.solana.com"
+MAINNET = "https://ssc-dao.genesysgo.net/"
 DEVNET = "https://api.devnet.solana.com"
 
 USENET = TESTNET
@@ -113,6 +116,29 @@ if __name__ == "__main__":
 
     assoc_ta_of_master_mint = get_associated_token_address(source_account.public_key, master_edition)
     min_balance = Token.get_min_balance_rent_for_exempt_for_mint(http_client)
+#    create_metadata_ix = create_metadata_instruction(
+#            data=get_create_metadata_instruction("Revival Punks NY 2022",
+#                                         "RPS_Drops",
+#                                         "https://arweave.net/S0MlFkiFTD8K683jKtnIFnwJmn5digm7ThwQ2Tc288M",
+#                                         500,
+#                                         is_mutable=False,
+#                                         creators = [
+#                                             {
+#                                                 "address": {
+#                                                     "pub_key" : bytes(source_account.public_key), 
+#                                                     },
+#                                                 "verified": True,
+#                                                 "share": 100
+#                                             }
+#                                         ]),
+#    update_authority=source_account.public_key,
+#    mint_key=PublicKey("Et8xbMQuB5PCxoCSdiLvJnNrNewsmx3BtoVPteSo1PRi"),
+#    mint_authority_key=source_account.public_key,
+#    payer=source_account.public_key,
+#)
+#    txn = Transaction()
+#    txn.add(create_metadata_ix)
+#    signers = [source_account]
 
     for c, (dest_address, edition_number) in enumerate(address_edition_numbers):
         new_mint_token, txn = get_instruction_batch_fresh_mint(http_client, min_balance, dest_address, source_account)
@@ -127,7 +153,7 @@ if __name__ == "__main__":
 
         txn.add(mint_new_edition_from_master_edition)
         signers = [source_account, new_mint_token]
-        print(execute(use_network, txn, signers))
+        print(execute(use_network, txn, signers, True))
 
 
 

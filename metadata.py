@@ -42,13 +42,28 @@ Creator = CStruct(
     "share" / U8
 )
 
+Collection = CStruct(
+        "verified" / Bool,
+        "key" / PubKey
+)
+
+Uses = CStruct(
+     "use_method" / U8,
+     "remaining" / U64,
+     "total" / U64,
+)
+
 Data = CStruct(
     "name" / String,
     "symbol" / String,
     "uri" / String,
     "seller_fee_basis_points" / U16,
-    "creators" / Option(Vec(Creator))
+    "creators" / Option(Vec(Creator)),
+    "collection" / Option(Collection),
+    "uses" / Option(Uses)
+
 )
+
 
 CreateMetadataAccountArgs = CStruct(
     "data" / Data,
@@ -64,6 +79,7 @@ UpdateMetadataAccountArgs = CStruct(
     "data" / Option(Data),
     "update_authority" / Option(PubKey),
     "primary_sale_happened" / Option(Bool),
+    "collection" / Option(Collection)
 )
 
 UpdateInstructionLayout = CStruct(
@@ -90,10 +106,10 @@ MintNewEditionFromMasterEditionViaTokenLayout = CStruct (
     "args" / MintNewEditionFromMasterEditionViaTokenArgs,
 )
 
-def get_create_metadata_instruction(name, symbol, uri, fee, is_mutable=False, creators=None):
+def get_create_metadata_instruction(name, symbol, uri, fee, is_mutable=False, creators=None, collection=None):
     return CreateInstructionLayout.build(
         {
-            "instruction_type": InstructionType.enum.CreateMetadataAccount(),
+            "instruction_type": InstructionType.enum.CreateMetadataAccountV2(),
             "args": {
                 "data":
                     {
@@ -101,7 +117,9 @@ def get_create_metadata_instruction(name, symbol, uri, fee, is_mutable=False, cr
                         "symbol": symbol,
                         "uri": uri,
                         "seller_fee_basis_points": fee,
-                        "creators": creators
+                        "creators": creators,
+                        "collection": collection,
+                        "uses": None
                     },
                 "is_mutable": is_mutable
             }
@@ -109,9 +127,9 @@ def get_create_metadata_instruction(name, symbol, uri, fee, is_mutable=False, cr
     )
 
 
-def get_update_metadata_instruction(name, symbol, uri, fee, update_authority, primary_sale_happened=None, creators=None):
-    return CreateMasterEditionLayout.build({
-        "instruction_type": InstructionType.enum.UpdateMetadataAccount(),
+def get_update_metadata_instruction(name, symbol, uri, fee, update_authority, primary_sale_happened=None, creators=None, collection = None):
+    return UpdateInstructionLayout.build({
+        "instruction_type": InstructionType.enum.UpdateMetadataAccountV2(),
         "args": {
             "data":
                 {
@@ -119,11 +137,11 @@ def get_update_metadata_instruction(name, symbol, uri, fee, update_authority, pr
                     "symbol": symbol,
                     "uri": uri,
                     "seller_fee_basis_points": fee,
-                    "creators": creators
+                    "creators": creators,
                 },
             "update_authority": {"pub_key": update_authority},
             "primary_sale_happened": primary_sale_happened,
-        }
+            "collection": collection}
     })
 
 def get_create_master_edition_instruction(max_supply):
